@@ -6,7 +6,7 @@ from keras.models import Input, Model
 from optparse import OptionParser
 
 # Fognet modules
-import models
+import FogNet
 import utils
 
 parser = OptionParser()
@@ -69,7 +69,7 @@ def loadCubes(dataDir, dataLabel, dataTime):
 cubes, cubeShapes = loadCubes(dataDir, dataLabel, dataTime)
 
 # Init model
-C = models.FogNet(
+C = FogNet.FogNet(
     Input(cubeShapes[0]),
     Input(cubeShapes[1]),
     Input(cubeShapes[2]),
