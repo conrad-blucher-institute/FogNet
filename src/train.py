@@ -1,77 +1,48 @@
-#===============================================================================================================
-#====================================== All Packages from Tensorflow and Keras =================================
-#===============================================================================================================
-import tensorflow
-from tensorflow import keras
-from keras.utils import to_categorical
-from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from keras.models import Input, Model   
-from keras.layers import Add, add, concatenate, Reshape, BatchNormalization, Input, Dense, Dropout, Flatten
-from keras.layers import Conv2D, Conv3D, Activation, MaxPooling2D, MaxPooling3D, AveragePooling3D, ReLU, GlobalAveragePooling3D, multiply
-from keras.layers.advanced_activations import LeakyReLU 
-from keras import regularizers 
-from keras import optimizers 
-from keras.optimizers import Adam, SGD 
-from keras.callbacks import ModelCheckpoint
-from keras.utils import np_utils
-from sklearn.model_selection import train_test_split 
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, cohen_kappa_score
-from operator import truediv
-from scipy.io import loadmat
-from kerastuner.tuners import RandomSearch
-from kerastuner import HyperModel
-from kerastuner.tuners import Hyperband
-from keras.utils import multi_gpu_model
-from keras.callbacks import EarlyStopping
-import keras.backend.tensorflow_backend as tfback
-#print("tf.version is", tf.version)
-#print("tf.keras.version is:", tf.keras.version)
+'''
+Program: train.py
+Purpose: trains 3D CNN FogNet model from scratch
+Authors: Hamid Kamangir, Evan Krell
+'''
 
-def _get_available_gpus():
-	if tfback._LOCAL_DEVICES is None:
-	    devices = tensorflow.config.list_logical_devices()
-	    tfback._LOCAL_DEVICES = [x.name for x in devices]
-	return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
-tfback._get_available_gpus = _get_available_gpus
-from keras.utils import multi_gpu_model
-from sklearn.model_selection import train_test_split 
-from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, cohen_kappa_score
-#===============================================================================================================
-#====================================== All Basic Packages =====================================================
-#===============================================================================================================
+#################
+# Load packages #
+#################
 import numpy
-import matplotlib.pyplot as pyplot
-import copy
-import errno
 import random
 import glob
 import os.path
 import time
-import calendar
-import json
-import pickle
-import seaborn as sns
-import pandas 
+import pandas
+from scipy import integrate
 import scipy
 from numpy import savez_compressed
-from scipy.interpolate import (
-    UnivariateSpline, RectBivariateSpline, RegularGridInterpolator)
-import matplotlib.colors
-import scipy.io as sio 
 from optparse import OptionParser
-#===============================================================================================================
-#====================================== My own Packages ========================================================
-#===============================================================================================================
+import tensorflow
+from tensorflow import keras
+from tensorflow.keras import Input, Model
+from tensorflow.keras.optimizers import Adam
+#import tensorflow.keras.backend.tensorflow_backend as tfback
+from tensorflow.python.client import device_lib
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+#def _get_available_gpus():
+#	if tfback._LOCAL_DEVICES is None:
+#	    devices = tensorflow.config.list_logical_devices()
+#	    tfback._LOCAL_DEVICES = [x.name for x in devices]
+#	return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
+#tfback._get_available_gpus = _get_available_gpus
+from tensorflow.keras.utils import multi_gpu_model
+# FogNet packages
 import utils
-import cnn_evaluate 
-import FogNetConfig
+import cnn_evaluate
 import FogNet
 
-#===============================================================================================================
-#====================================== Parse options  =========================================================
-#===============================================================================================================
-
+#################
+# Parse options #
+#################
 parser = OptionParser()
 # Project
 parser.add_option("-n", "--name",
@@ -126,6 +97,9 @@ parser.add_option(      "--filters",
 parser.add_option(      "--dropout",
     help="Droput rate [default = %default].",
     default=0.3, type="float")
+parser.add_option(      "--num_gpus",
+    help="Number of GPUs to use [default = %default].",
+    default=4, type="int")
 (options, args) = parser.parse_args()
 
 print("")
@@ -203,8 +177,9 @@ batchSize = options.batch_size
 epochs = options.epochs
 learningRate = options.learning_rate
 wd = options.weight_penalty
-filters = options.filters 
+filters = options.filters
 dropout = options.dropout
+nGPU = options.num_gpus
 print("Hyperparameters:")
 print("    batch size: {}".format(batchSize))
 print("    learning rate: {}".format(learningRate))
@@ -212,9 +187,23 @@ print("    weight penalty: {}".format(wd))
 print("    number of filters: {}".format(filters))
 print("    dropout rate: {}".format(dropout))
 
-#===============================================================================================================
-#================================= Input Cube Names ============================================================
-#===============================================================================================================
+###########################
+# Check available devices #
+###########################
+available_devices = device_lib.list_local_devices()
+available_gpus =  [x.name for x in available_devices if x.device_type == 'GPU']
+available_xla_gpus =  [x.name for x in available_devices if x.device_type == 'XLA_GPU']
+
+print("Devices:")
+print("    requested {} GPUs".format(nGPU))
+print("    available GPUs: {} (XLA: {})".format(len(available_gpus), len(available_xla_gpus)))
+nGPU = min(len(available_gpus), nGPU)
+print("    will use {} GPUs".format(nGPU))
+
+############################
+# Setup input data rasters #
+############################
+# Generate data file paths
 nam_G1_template = "NETCDF_NAM_CUBE_{year}_PhG1_{horizon}.npz"
 nam_G1_names = [nam_G1_template.format(year=year, horizon=horizon) for year in allYears]
 
@@ -236,29 +225,11 @@ mur_file_names = [mur_file_template.format(year=year) for year in allYears]
 targets_file_template = "target{year}_{horizon}.csv"
 targets_file_names = [targets_file_template.format(year=year, horizon=horizon) for year in allYears]
 
-#===============================================================================================================
-#====================================== Read Cube Files ========================================================
-#===============================================================================================================
-# If you are using more than one GPU you need to run this line to atke advantage of all the GPUs. 
-#strategy = tensorflow.distribute.experimental.MultiWorkerMirroredStrategy()
-#print('Number of devices: {}'.format(strategy.num_replicas_in_sync))       # just to show how many GPU are you using: 
-
-
-#with strategy.scope(): 
-
-
-
-  #shuff_order  = subdir_name + '_order' + '_report.txt' 
-
-  #shuffled_idx = numpy.random.permutation(108)
-  #print('Order  : ', shuffled_idx,  file=open(shuff_order, "a")) 
-
+# Read data cubes
 training_list   = utils.load_Cat_cube_data(nam_G1_names,
     nam_G2_names, nam_G3_names, nam_G4_names, mixed_file_names, mur_file_names, cubeDir, trainYearIdxs)
-
 validation_list = utils.load_Cat_cube_data(nam_G1_names,
     nam_G2_names, nam_G3_names, nam_G4_names, mixed_file_names, mur_file_names, cubeDir, valYearIdxs)
-
 testing_list    = utils.load_Cat_cube_data(nam_G1_names,
     nam_G2_names, nam_G3_names, nam_G4_names, mixed_file_names, mur_file_names, cubeDir, testYearIdxs)
 
@@ -269,38 +240,32 @@ target_class = utils.targets(
 )
 target_list = target_class.binary_target()
 
+# Separate into train, test, validation
 Training_targets = target_list[0]
 print('training target shape:', Training_targets.shape)
-#numpy.savetxt('training_c3.csv', Training_targets, delimiter=',', fmt='%d')
-
 ytrain = target_list[1]
 print('training categorical target shape:', ytrain.shape)
-
 Validation_targets = target_list[2]
 print('validation target shape:', Validation_targets.shape)
-#numpy.savetxt('validation_c3.csv', Validation_targets, delimiter=',', fmt='%d')
-
 yvalid = target_list[3]
 print('validation categorical target shape:', yvalid.shape)
-
-Testing_targets = target_list[4] 
+Testing_targets = target_list[4]
 print('testing target shape:', Testing_targets.shape)
-#numpy.savetxt('testing_c3.csv', Testing_targets, delimiter=',', fmt='%d')
-
 ytest = target_list[5]
 print('testing categorical target shape:', ytest.shape)
 
-  #====================================================================================
 callbacks = tensorflow.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-  #callbacks = tensorflow.keras.callbacks.LearningRateScheduler(modelconfig.scheduler)
-
-#for i in range(1,11):
 
 N = 'run' + '11'
-subdir_name = outDir + "/"  + N + '/' 
+subdir_name = outDir + "/"  + N + '/'
 if not os.path.exists(subdir_name):
-    os.makedirs(subdir_name) 
+    os.makedirs(subdir_name)
 
+################
+# Train FogNet #
+################
+
+# Initialize
 C  = FogNet.FogNet(
     Input(training_list[0].shape[1:]),
     Input(training_list[1].shape[1:]),
@@ -309,53 +274,56 @@ C  = FogNet.FogNet(
     Input(training_list[4].shape[1:]),
     Input(training_list[5].shape[1:]),
     filters, dropout, 2)
+model = C.BuildModel()
+# Set number of GPUs to use
 
-model = C.BuildModel() 
-model = multi_gpu_model(model, gpus=4)
-#model.load_weights('weights.h5')
+if nGPU > 1:
+    model = multi_gpu_model(model, gpus=nGPU)
 
-model.compile(optimizer=Adam(lr=learningRate, decay=wd), 
+model.compile(optimizer=Adam(lr=learningRate, decay=wd),
       loss='categorical_crossentropy',
-      metrics=['accuracy']) 
+      metrics=['accuracy'])
+
+# Train
 history = model.fit(x= training_list, y=ytrain,
-  batch_size = batchSize, 
-  epochs = epochs, 
+  batch_size = batchSize,
+  epochs = epochs,
   callbacks = [callbacks],
   validation_data = (validation_list, yvalid))
 
+# Save
 model.save(subdir_name + 'history.h5')
 model.save_weights(subdir_name + 'weights.h5')
-
 loss_name = subdir_name + 'loss.png'
 _ = cnn_evaluate.plot_loss_function(history, loss_name)
 
-#predict the output using predict function: 
+#predict the output using predict function:
 column_names = ["C0_Prob", "C1_Prob"]
 y_training_cat_prob     = model.predict(training_list)
 VIS_Prob_TRAIN = pandas.DataFrame(y_training_cat_prob, columns = column_names)
 #VIS_Prob_TRAIN['C0_Prob'] = y_training_cat_prob[:, 0]
-#VIS_Prob_TRAIN['C1_Prob'] = y_training_cat_prob[:, 1] 
+#VIS_Prob_TRAIN['C1_Prob'] = y_training_cat_prob[:, 1]
 VIS_Prob_TRAIN.to_csv(subdir_name + 'VIS_Prob_TRAIN.csv')
 
-y_validation_cat_prob   = model.predict(validation_list) 
+y_validation_cat_prob   = model.predict(validation_list)
 VIS_Prob_VALID = pandas.DataFrame(y_validation_cat_prob, columns = column_names)
 #VIS_Prob_VALID['C0_Prob'] = y_validation_cat_prob[:, 0]
 #VIS_Prob_VALID['C1_Prob'] = y_validation_cat_prob[:, 1]
 VIS_Prob_VALID.to_csv(subdir_name + 'VIS_Prob_VALID.csv')
 
-y_testing_cat_prob       = model.predict(testing_list) 
+y_testing_cat_prob       = model.predict(testing_list)
 VIS_Prob_TEST = pandas.DataFrame(y_testing_cat_prob, columns = column_names)
 #VIS_Prob_TEST['C0_Prob'] = y_testing_cat_prob[:, 0]
-#VIS_Prob_TEST['C1_Prob'] = y_testing_cat_prob[:, 1] 
-VIS_Prob_TEST.to_csv(subdir_name + 'VIS_Prob_TEST.csv') 
+#VIS_Prob_TEST['C1_Prob'] = y_testing_cat_prob[:, 1]
+VIS_Prob_TEST.to_csv(subdir_name + 'VIS_Prob_TEST.csv')
 
-Tr_name   = subdir_name + model_name + '_training' + '_0' + '_report.txt' 
+Tr_name   = subdir_name + model_name + '_training' + '_0' + '_report.txt'
 val_name  = subdir_name + model_name + '_validation'+ '_0' + '_report.txt'
-test_name = subdir_name + model_name + '_testing' + '_0' + '_report.txt' 
+test_name = subdir_name + model_name + '_testing' + '_0' + '_report.txt'
 
 training_threshold   = cnn_evaluate.skilled_metrics(Training_targets, y_training_cat_prob, 'HSS', Tr_name)
 accuray_list_validation = cnn_evaluate.skilled_metrics(Validation_targets, y_validation_cat_prob, 'HSS', val_name)
-testing_threshold    = cnn_evaluate.skilled_metrics(Testing_targets, y_testing_cat_prob, 'HSS', test_name)   
+testing_threshold    = cnn_evaluate.skilled_metrics(Testing_targets, y_testing_cat_prob, 'HSS', test_name)
 
 test_accuracy_report = subdir_name + model_name + '_testing' + '_0' + '_accuracy_report.txt'
 testing_accuracy = cnn_evaluate.confusion_cnn(Testing_targets, y_testing_cat_prob, training_threshold, test_accuracy_report)

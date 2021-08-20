@@ -1,32 +1,17 @@
 import copy
-import errno
-import random
-import glob
-import os.path
 import time
 import calendar
-import json
-import pickle
 import netCDF4
 import numpy
 from numpy import savez_compressed
+from numpy import load
 import pandas
-from tensorflow import keras
-#import keras
-from keras import backend as K
 import tensorflow
+from tensorflow.keras.utils import to_categorical
 import scipy.ndimage
-from scipy.interpolate import (
-    UnivariateSpline, RectBivariateSpline, RegularGridInterpolator)
-import matplotlib.colors
 import matplotlib.pyplot as pyplot
 import seaborn as sns
-import sklearn.metrics
-from numpy import load
-from zipfile import ZipFile
 import os.path
-from keras.utils import to_categorical
-
 from sklearn.utils import shuffle
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import MinMaxScaler
@@ -1276,9 +1261,9 @@ class targets():
             year_data = year_data['VIS_Cat']
             TRAIN_FRAMES.append(year_data)
         training_targets = pandas.concat(TRAIN_FRAMES)
-        print(training_targets.shape)
+        #print(training_targets.shape)
         categorical_training_targets   = to_categorical(training_targets)
-        print(categorical_training_targets.shape)
+        #print(categorical_training_targets.shape)
 
 
         VALID_FRAMES = []
@@ -1289,9 +1274,9 @@ class targets():
             year_data = year_data['VIS_Cat']
             VALID_FRAMES.append(year_data)
         validation_targets = pandas.concat(VALID_FRAMES)
-        print(validation_targets.shape)
+        #print(validation_targets.shape)
         categorical_validation_targets = to_categorical(validation_targets)
-        print(categorical_validation_targets.shape)
+        #print(categorical_validation_targets.shape)
 
         TEST_FRAMES = []
         for k in self.testing_years:
@@ -1301,9 +1286,9 @@ class targets():
             year_data = year_data['VIS_Cat']
             TEST_FRAMES.append(year_data)
         testing_targets = pandas.concat(TEST_FRAMES)
-        print(testing_targets.shape)
+        #print(testing_targets.shape)
         categorical_testing_targets    = to_categorical(testing_targets)
-        print(categorical_testing_targets.shape)
+        #print(categorical_testing_targets.shape)
 
         return [training_targets, categorical_training_targets,
         validation_targets, categorical_validation_targets,
@@ -1325,7 +1310,7 @@ class targets():
             year_data = year_data['VIS_Cat']
             TRAIN_FRAMES.append(year_data)
         training_targets = pandas.concat(TRAIN_FRAMES)
-        print(training_targets.shape)
+        #print(training_targets.shape)
 
         VALID_FRAMES = []
         for j in self.validation_years:
@@ -1335,7 +1320,7 @@ class targets():
             year_data = year_data['VIS_Cat']
             VALID_FRAMES.append(year_data)
         validation_targets = pandas.concat(VALID_FRAMES)
-        print(validation_targets.shape)
+        #print(validation_targets.shape)
 
         TEST_FRAMES = []
         for k in self.testing_years:
@@ -1346,7 +1331,7 @@ class targets():
             TEST_FRAMES.append(year_data)
         testing_targets = pandas.concat(TEST_FRAMES)
         #print(testing_targets.head())
-        print(testing_targets.shape)
+        #print(testing_targets.shape)
 
 
         training_binary_targets, validation_binary_targets, testing_binary_targets = target_converter(

@@ -19,17 +19,8 @@ Citation:
 ## Todo
 
 - [x] Add source code to repo by June 1
-- [ ] Make data available
-- [ ] Make number of GPUs variable
-- [ ] Port to TensorFlow 2
-- [ ] Improve documentation
+- [ ] Add scripts to download, format data
 - [ ] Add XAI scripts
-
-# Notes
-
-- Currently hard-coded to train with 4 GPUs
-- Some absolute paths are used in this documentation that will be cleaned up before external release.
-- Right now, members of the FogNet team can find the data on TAMUCC's deep learning at `/data1/fog/Dataset`
 
 ## Optimal threshold
 
@@ -45,11 +36,6 @@ by finding the threshold that maximizes the skill score.
 After training, the optimal threshold will be found in the training output directory. 
 (`DIRECTORY/run_testing_0_report.txt`). You can use this with the script `applyThreshold.py` to convert prediction probabilities to a selected class. 
 
-## Data (coming soon)
-
-The dataset is quite large, and has not yet been made available. 
-We plan to release (1) the data used for publication results and (2) the scripts used to pull and format the data NWP data.
-
 ## Prediction task parameters
 
 Options exist to customize the exact prediction task that the model is for. 
@@ -64,11 +50,25 @@ The targets file supports classes 1660, 3200, 6400.
 The subdirectory `trained_model` includes the outputs of training FogNet.
 The trained model was for 24-hour time horizon, and 1600 meter visibility class. 
 
+## Installation (here, using Anaconda and Ubuntu 18.04)
+
+After installing Anaconda,
+
+    # Create environment
+    conda create --name tf python=3.8
+    # Activate environment
+    conda activate tf
+    # Install CUDA for GPU support
+    conda install -c anaconda cudatoolkit=10.1
+    # Install tensorflow
+    pip install tensorflow-gpu==2.3
+    # Install other python packages
+    pip install matplotlib seaborn netCDF4 sklearn
+
 ## Quickstart
 
-	# Activate python environment
-	export PATH=/home/hkamangir/anaconda3/bin:$PATH
-	source activate deep-learning
+    # If not already, activate environment
+    conda activate tf
 
 	# Training
 	#   (--force is used to overwrite existing test output directory)

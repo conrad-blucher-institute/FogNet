@@ -1,6 +1,7 @@
 # This script runs a trained Fognet model
 import tensorflow
-from keras.models import Input, Model
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
 import os
 import numpy as np
 from optparse import OptionParser
