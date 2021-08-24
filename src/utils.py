@@ -12,9 +12,6 @@ import scipy.ndimage
 import matplotlib.pyplot as pyplot
 import seaborn as sns
 import os.path
-from sklearn.utils import shuffle
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import MinMaxScaler
 
 # Variable names.
 NETCDF_X = 'x'

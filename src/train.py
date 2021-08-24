@@ -17,6 +17,7 @@ from scipy import integrate
 import scipy
 from numpy import savez_compressed
 from optparse import OptionParser
+from sklearn.utils import shuffle
 import tensorflow
 from tensorflow import keras
 from tensorflow.keras import Input, Model
@@ -256,8 +257,7 @@ print('testing categorical target shape:', ytest.shape)
 
 callbacks = tensorflow.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
 
-N = 'run' + '11'
-subdir_name = outDir + "/"  + N + '/'
+subdir_name = outDir + "/"
 if not os.path.exists(subdir_name):
     os.makedirs(subdir_name)
 
@@ -276,10 +276,8 @@ C  = FogNet.FogNet(
     filters, dropout, 2)
 model = C.BuildModel()
 # Set number of GPUs to use
-
 if nGPU > 1:
     model = multi_gpu_model(model, gpus=nGPU)
-
 model.compile(optimizer=Adam(lr=learningRate, decay=wd),
       loss='categorical_crossentropy',
       metrics=['accuracy'])

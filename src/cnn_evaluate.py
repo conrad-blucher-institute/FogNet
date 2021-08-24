@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy
 from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
 
 def Optimal_Thr(y, ypred, save_name):
 

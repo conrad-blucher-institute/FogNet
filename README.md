@@ -50,14 +50,31 @@ The targets file supports classes 1660, 3200, 6400.
 The subdirectory `trained_model` includes the outputs of training FogNet.
 The trained model was for 24-hour time horizon, and 1600 meter visibility class. 
 
-## Installation (here, using Anaconda and Ubuntu 18.04)
+## Installation (Linux)
 
-After installing Anaconda,
+The following are 2 examples of installation using Anaconda to manage a virtual environment.
+The versions of TensorFlow must match the correct CUDA installation.
+It is non-trivial to maintain multiple versions of CUDA on a system, without the use of isolated environments.
+
+First, [install Anaconda by following their documentation](https://docs.anaconda.com/anaconda/install/linux/). 
+
+#### For Ubuntu 14.04
 
     # Create environment
-    conda create --name tf python=3.8
+    conda create --name fognet python=3.7.7
     # Activate environment
-    conda activate tf
+    conda install -c anaconda cudatoolkit=10.1
+    # Install tensorflow
+    conda install tensorflow-gpu==2.1.0
+    # Install other python packages
+    pip install matplotlib seaborn netCDF4 sckit-learn
+
+#### For Ubuntu 18.08
+
+    # Create environment
+    conda create --name fognet python=3.8
+    # Activate environment
+    conda activate fognet
     # Install CUDA for GPU support
     conda install -c anaconda cudatoolkit=10.1
     # Install tensorflow
@@ -68,7 +85,7 @@ After installing Anaconda,
 ## Quickstart
 
     # If not already, activate environment
-    conda activate tf
+    conda activate fognet
 
 	# Training
 	#   (--force is used to overwrite existing test output directory)
