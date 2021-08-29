@@ -7,17 +7,17 @@ import numpy as np
 from optparse import OptionParser
 
 # Use multiple GPUs
-import keras.backend.tensorflow_backend as tfback
-def _get_available_gpus():
-    if tfback._LOCAL_DEVICES is None:
-        devices = tensorflow.config.list_logical_devices()
-        tfback._LOCAL_DEVICES = [x.name for x in devices]
-    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
-tfback._get_available_gpus = _get_available_gpus
-from keras.utils import multi_gpu_model
+#import keras.backend.tensorflow_backend as tfback
+#def _get_available_gpus():
+#    if tfback._LOCAL_DEVICES is None:
+#        devices = tensorflow.config.list_logical_devices()
+#        tfback._LOCAL_DEVICES = [x.name for x in devices]
+#    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
+#tfback._get_available_gpus = _get_available_gpus
+from tensorflow.keras.utils import multi_gpu_model
 
 # Fognet modules
-import models
+import FogNet
 import utils
 
 # Global file path templates
@@ -105,7 +105,7 @@ def loadCubes(dataDir, dataLabel, dataTime):
 
 def initModel(cubeShapes, weightsFile, filters=24, dropout=0.3):
     # Init model
-    C = models.FogNet(
+    C = FogNet.FogNet(
         Input(cubeShapes[0]),
         Input(cubeShapes[1]),
         Input(cubeShapes[2]),

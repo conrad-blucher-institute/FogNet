@@ -209,13 +209,13 @@ nam_G1_template = "NETCDF_NAM_CUBE_{year}_PhG1_{horizon}.npz"
 nam_G1_names = [nam_G1_template.format(year=year, horizon=horizon) for year in allYears]
 
 nam_G2_template = "NETCDF_NAM_CUBE_{year}_PhG2_{horizon}.npz"
-nam_G2_names = [nam_G1_template.format(year=year, horizon=horizon) for year in allYears]
+nam_G2_names = [nam_G2_template.format(year=year, horizon=horizon) for year in allYears]
 
-nam_G3_template = "NETCDF_NAM_CUBE_{year}_PhG1_{horizon}.npz"
-nam_G3_names = [nam_G1_template.format(year=year, horizon=horizon) for year in allYears]
+nam_G3_template = "NETCDF_NAM_CUBE_{year}_PhG3_{horizon}.npz"
+nam_G3_names = [nam_G3_template.format(year=year, horizon=horizon) for year in allYears]
 
-nam_G4_template = "NETCDF_NAM_CUBE_{year}_PhG1_{horizon}.npz"
-nam_G4_names = [nam_G1_template.format(year=year, horizon=horizon) for year in allYears]
+nam_G4_template = "NETCDF_NAM_CUBE_{year}_PhG4_{horizon}.npz"
+nam_G4_names = [nam_G4_template.format(year=year, horizon=horizon) for year in allYears]
 
 mixed_file_template = "NETCDF_MIXED_CUBE_{year}_{horizon}.npz"
 mixed_file_names = [mixed_file_template.format(year=year, horizon=horizon) for year in allYears]
@@ -277,21 +277,34 @@ C  = FogNet.FogNet(
 model = C.BuildModel()
 # Set number of GPUs to use
 if nGPU > 1:
-    model = multi_gpu_model(model, gpus=nGPU)
-model.compile(optimizer=Adam(lr=learningRate, decay=wd),
+    multi_model = multi_gpu_model(model, gpus=nGPU)
+else:
+    multi_model = model
+multi_model.compile(optimizer=Adam(lr=learningRate, decay=wd),
       loss='categorical_crossentropy',
       metrics=['accuracy'])
 
 # Train
-history = model.fit(x= training_list, y=ytrain,
+history = multi_model.fit(x= training_list, y=ytrain,
   batch_size = batchSize,
   epochs = epochs,
   callbacks = [callbacks],
   validation_data = (validation_list, yvalid))
 
+# Assign multi-model weights to single
+model.set_weights(multi_model.get_weights())
+
 # Save
 model.save(subdir_name + 'history.h5')
-model.save_weights(subdir_name + 'weights.h5')
+
+def freeze_layers(model):
+    for i in model.layers:
+        i.trainable = False
+        if isinstance(i, Model):
+            freeze_layers(i)
+        return model
+model_freezed = freeze_layers(model)
+model_freezed.save_weights(subdir_name + 'weights.h5')
 loss_name = subdir_name + 'loss.png'
 _ = cnn_evaluate.plot_loss_function(history, loss_name)
 

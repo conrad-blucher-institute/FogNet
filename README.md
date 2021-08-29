@@ -91,13 +91,6 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
 	#   (--force is used to overwrite existing test output directory)
 	python src/train.py -o test --force
 
-    # Convert multi-GPU model (for training) to single-GPU model (for prediction)
-    python src/multi2single.py -w  test/weights.h5              \ # Saved weights of trained FogNet
-                    -d /data1/fog/fognn/Dataset/24HOURS/INPUT/  \ # Path to FogNet data
-                    -l 2019               \                       # The "$LABEL", files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
-                    -t 24                 \                       # The "$TIME",  files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
-                   -o trained_weights.h5
-
     # Prediction
     python src/eval.py -w trained_weights.h5                   \ # Saved weights of trained FogNet
                    -d /data1/fog/fognn/Dataset/24HOURS/INPUT/  \ # Path to FogNet data
@@ -118,6 +111,9 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
     COMING SOON
 
     # Generate custom data cube with selected instances
+    COMING SOON
+
+    # Run XAI scripts to investigate how model works (what strategies it is using)
     COMING SOON
 
 

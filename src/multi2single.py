@@ -1,8 +1,15 @@
+###############################################
+#            No longer needed!                #
+# Since correctly saving model after training #
+###############################################
+
 # Convert a multi-GPU model to single-GPU model
 # To clarify, the FogNet training script outputs model weights that only work with a multi-GPU model
 # This is very inconvenient for prediction. For example, the batch size must be divisible by the number of GPUs.
 import tensorflow
-from keras.models import Input, Model
+import numpy as np
+from tensorflow.keras.layers import Input
+from tensorflow.keras.utils import multi_gpu_model
 from optparse import OptionParser
 
 # Fognet modules
@@ -36,6 +43,8 @@ dataTime = options.time_horizon
 filters = options.filters
 dropout = options.dropout
 
+nGPU = 4
+
 # Global file path templates
 nam_G1_template = "{dir}/NETCDF_NAM_CUBE_{label}_PhG1_{horizon}.npz"
 nam_G2_template = "{dir}/NETCDF_NAM_CUBE_{label}_PhG2_{horizon}.npz"
@@ -56,13 +65,14 @@ def loadCubes(dataDir, dataLabel, dataTime):
     cubes = utils.load_Cat_cube_data(
         nam_G1_file, nam_G2_file, nam_G3_file, nam_G4_file, mixed_file, mur_file,
         dataDir, [0])
-    cubeShapes = [nam_G1_shape,
-                  nam_G2_shape,
-                  nam_G3_shape,
-                  nam_G4_shape,
-                  mixed_shape,
-                  mur_shape]
-    return cubes, cubeShape
+
+    cubeShapes = [cubes[0].shape[1:],
+                  cubes[1].shape[1:],
+                  cubes[2].shape[1:],
+                  cubes[3].shape[1:],
+                  cubes[4].shape[1:],
+                  cubes[5].shape[1:]]
+    return cubes, cubeShapes
 
 
 # Determine model shapes from data shapes
@@ -80,8 +90,9 @@ C = FogNet.FogNet(
     dropout,
     2
 )
+
 model = C.BuildModel()
-model = multi_gpu_model(model, gpus=4)
-load_status = model.load_weights(weightsFile)
-old_model = model.layers[-2]
-old_model.save(outputWeightsFile)
+#model = multi_gpu_model(model, gpus=nGPU)
+load_status = model.load_weights(inputWeightsFile)
+#old_model = model.layers[-2]
+#old_model.save(outputWeightsFile)
