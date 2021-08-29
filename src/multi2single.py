@@ -92,7 +92,7 @@ C = FogNet.FogNet(
 )
 
 model = C.BuildModel()
-#model = multi_gpu_model(model, gpus=nGPU)
+model = multi_gpu_model(model, gpus=nGPU)
 load_status = model.load_weights(inputWeightsFile)
-#old_model = model.layers[-2]
-#old_model.save(outputWeightsFile)
+old_model = model.layers[-2]
+old_model.save(outputWeightsFile)
