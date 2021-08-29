@@ -199,6 +199,41 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
       -v, --verbose         Verbose output 
 
 
+## XAI script `xaiPartitionShap.py` options
+
+
+    Usage: xaiPartitionShap.py [options]
+    
+    Options:
+      -h, --help            show this help message and exit
+      -o OUTPUT_SHAP_VALUES, --output_shap_values=OUTPUT_SHAP_VALUES
+                            Path to save pickled SHAP values.
+      -w WEIGHTS, --weights=WEIGHTS
+                            Path to trained model weights [default =
+                            trained_weights.h5].
+      -d DIRECTORY, --directory=DIRECTORY
+                            Path to directory with fog data cubes [default =
+                            /data1/fog/fognn/Dataset/24HOURS/INPUT/].
+      -l LABEL, --label=LABEL
+                            Unique label to identify data cubes in data directory
+                            [default = 2019].
+      -t TIME_HORIZON, --time_horizon=TIME_HORIZON
+                            Prediction time horizon [default = 24].
+      -i FILTERS, --filters=FILTERS
+                            Number of filters [default = 24].
+      -j DROPOUT, --dropout=DROPOUT
+                            Droput rate [default = 0.3].
+      -c CASES, --cases=CASES
+                            Path to list of indices in data cube to evaluate. If
+                            none, use all.
+      -e MAX_EVALUATIONS, --max_evaluations=MAX_EVALUATIONS
+                            Maximum number of SHAP evaluations [default = 50000].
+      -m MASKER, --masker=MASKER
+                            Feature removal masking method. Examples are
+                            `blur=10,10` and `color=128`. The blur numbers must be
+                            positive. [default = color=0.5].
+
+
 ## Data format
 
 Example dataset format, where $TIME=24 and $LABEL=2009
