@@ -63,11 +63,13 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
     # Create environment
     conda create --name fognet python=3.7.7
     # Activate environment
+    conda activate fognet
+    # Instal CUDA to use GPU
     conda install -c anaconda cudatoolkit=10.1
     # Install tensorflow
     conda install tensorflow-gpu==2.1.0
     # Install other python packages
-    pip install matplotlib seaborn netCDF4 sckit-learn
+    pip install matplotlib seaborn netCDF4 scikit-learn
 
 #### For Ubuntu 18.08
 
@@ -94,7 +96,7 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
                     -o test        # Path to output trained model weights, reports
 
     # Prediction
-    python src/eval.py -w trained_weights.h5                   \ # Saved weights of trained FogNet
+    python src/eval.py -w test/weights.h5                   \ # Saved weights of trained FogNet
                    -d /data1/fog/fognn/Dataset/24HOURS/INPUT/  \ # Path to FogNet data
                    -l 2019               \                       # The "$LABEL", files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
                    -t 24                 \                       # The "$TIME",  files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
@@ -115,8 +117,27 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
     # Generate custom data cube with selected instances
     COMING SOON
 
-    # Run XAI scripts to investigate how model works (what strategies it is using)
-    COMING SOON
+
+## (Experimental!!) Run XAI methods
+
+**Run XAI script: Channel-wise PartitionShap**
+    
+    # Install packages
+    pip install git+https://github.com/conrad-blucher-institute/shap.git
+    pip uninstall h5py
+    pip install h5py==2.10.0
+    
+    # Run Channel-wise PartitionShap
+    python src/xaiPartitionShap.py \
+        -d ../fognn/Dataset/24HOURS/INPUT/  \ # Path to FogNet data
+        -w test/weights.h5                  \ # Path to trained model weights
+        -o output_shap.pickle               \ # Path to save output SHAP values
+        -l 2019                             \ # The "$LABEL", files have format'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
+        -t 24                               \ # The "$TIME",  files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
+        --filters 24                        \ # Must match the trained weights' model
+        --dropout 0.3                       \ # Must match the trained weights' model 
+        -max_evaluation 10000               \ # Max number of SHAP evals -> controls explanation granularity (higher -> smaller superpixels)
+        --masker color=0.5                  \ # Masker method, here replacement by '0.5'
 
 
 ## Training script `train.py` options

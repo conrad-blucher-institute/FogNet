@@ -5,15 +5,6 @@ from tensorflow.keras.layers import Input
 import os
 import numpy as np
 from optparse import OptionParser
-
-# Use multiple GPUs
-#import keras.backend.tensorflow_backend as tfback
-#def _get_available_gpus():
-#    if tfback._LOCAL_DEVICES is None:
-#        devices = tensorflow.config.list_logical_devices()
-#        tfback._LOCAL_DEVICES = [x.name for x in devices]
-#    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
-#tfback._get_available_gpus = _get_available_gpus
 from tensorflow.keras.utils import multi_gpu_model
 
 # Fognet modules
@@ -119,15 +110,6 @@ def initModel(cubeShapes, weightsFile, filters=24, dropout=0.3):
     #model = multi_gpu_model(model, gpus=4)
     # Loads weights
     load_status = model.load_weights(weightsFile)
-
-    # These lines were used to convert a weights file
-    # where the model needed 4 GPUs (how it was trained)
-    # to one that uses a single GPU (convenient for evaluation)
-    # Otherwise must have (1) 4 GPUs,  (2) batch size divisible by 4
-    #old_model = model.layers[-2]
-    #old_model.save("temp.h5")
-    #model = C.BuildModel()
-    #load_status = model.load_weights("temp.h5")
 
     return model
 

@@ -39,7 +39,7 @@ def main():
                       default=50000, type="int")
     parser.add_option("-m", "--masker",
                       help="Feature removal masking method. Examples are `blur=10,10` and `color=128`. The blur numbers must be positive. [default = %default].",
-                      default="blur=10,10")
+                      default="color=0.5")
     (options, args) = parser.parse_args()
 
     # Data options
@@ -86,9 +86,7 @@ def main():
 
     cases = None
     if casesFile is not None:
-        print(casesFile)
         cases = np.loadtxt(casesFile).astype("int")
-        print(cases)
 
     # Load data
     cubes, cubeShapes = eval.loadCubes(dataDir, dataLabel, dataTime)
