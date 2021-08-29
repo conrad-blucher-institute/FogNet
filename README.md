@@ -91,7 +91,7 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
 	#   (--force is used to overwrite existing test output directory)
 	python src/train.py \           
                     --num_gpus 4 \ # Number of GPUs to use 
-                    -o test \      # Path to output trained model weights, reports
+                    -o test        # Path to output trained model weights, reports
 
     # Prediction
     python src/eval.py -w trained_weights.h5                   \ # Saved weights of trained FogNet
