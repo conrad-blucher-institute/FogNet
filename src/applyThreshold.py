@@ -7,8 +7,8 @@ import os
 from optparse import OptionParser
 
 def binarize(probs, threshold):
-    fogProbs = probs[:,0]
-    classes = ~ (fogProbs >= threshold)
+    fogProbs = probs[:,1]
+    classes = ~ (fogProbs > threshold)
     classes= classes.astype("int")
     return classes
 

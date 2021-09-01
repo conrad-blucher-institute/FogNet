@@ -20,7 +20,6 @@ Citation:
 
 - [x] Add source code to repo by June 1
 - [ ] Add scripts to download, format data
-- [ ] Add XAI scripts
 
 ## Optimal threshold
 
