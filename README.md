@@ -49,6 +49,12 @@ The targets file supports classes 1660, 3200, 6400.
 The subdirectory `trained_model` includes the outputs of training FogNet.
 The trained model was for 24-hour time horizon, and 1600 meter visibility class. 
 
+## Download & format data
+
+**Data availability:** [North American Mesoscale (NAM) 12km avalable in grib2 format](ftp://ftp.ncep.noaa.gov/pub/data/nccf/com/nam/prod/nam.YYYYMMDD)
+
+Steps to download and format for FogNet coming soon!
+
 ## Installation (Linux)
 
 The following are 2 examples of installation using Anaconda to manage a virtual environment.
@@ -193,7 +199,7 @@ Review the options of each with `--help`. For example, `python src/train.py --he
         -t 24                                    \  # Prediction lead time
         -max_evaluation 10000                    \  # Number of SHAP evaluations. More -> smaller superpixels, but longer time.
         --masker color=0.5                       \  # Simulate removing input features by replacement with value 0.5
-        -o output_shap.pickle
+        -o trained_model/shap_sample_values.pickle
 
 
 ## Data format
