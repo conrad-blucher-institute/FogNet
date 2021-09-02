@@ -33,7 +33,7 @@ Instead of using 0.5 to separate fog and non-fog, an optimal threshold is determ
 by finding the threshold that maximizes the skill score. 
 
 After training, the optimal threshold will be found in the training output directory. 
-(`DIRECTORY/run_testing_0_report.txt`). You can use this with the script `applyThreshold.py` to convert prediction probabilities to a selected class. 
+(`DIRECTORY/test_training_0_report.txt`). You can use this with the script `applyThreshold.py` to convert prediction probabilities to a selected class. 
 
 ## Prediction task parameters
 
@@ -168,6 +168,8 @@ Review the options of each with `--help`. For example, `python src/train.py --he
 
 **Run XAI script: Channel-wise PartitionShap**
     
+[Click here for information on Channel-wise PartitionShap and how to visualize the output](https://github.com/conrad-blucher-institute/partitionshap-multiband-demo).
+
     # Install packages
     pip install git+https://github.com/conrad-blucher-institute/shap.git
 
@@ -175,17 +177,24 @@ Review the options of each with `--help`. For example, `python src/train.py --he
     pip uninstall h5py
     pip install h5py==2.10.0
     
-    # Run Channel-wise PartitionShap
-    python src/xaiPartitionShap.py \
-        -d ../fognn/Dataset/24HOURS/INPUT/  \ # Path to FogNet data
-        -w test/weights.h5                  \ # Path to trained model weights
-        -o output_shap.pickle               \ # Path to save output SHAP values
-        -l 2019                             \ # The "$LABEL", files have format'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
-        -t 24                               \ # The "$TIME",  files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
-        --filters 24                        \ # Must match the trained weights' model
-        --dropout 0.3                       \ # Must match the trained weights' model 
-        -max_evaluation 10000               \ # Max number of SHAP evals -> controls explanation granularity (higher -> smaller superpixels)
-        --masker color=0.5                  \ # Masker method, here replacement by '0.5'
+    # PartitionShap too slow to run all 2228 instances
+    # Already made a file with 4 selected
+    # head trained_model/shap_sample_instances.txt
+
+        100
+        200
+        300
+
+    # Run Channel-wise PartitionShap on those instances (from 2019 data)
+    python src/xaiPartitionShap.py               \
+        -d ../fognn/Dataset/24HOURS/INPUT/       \  # See data download steps for path
+        -w trained_model/single_gpu_weights.h5   \  # Pretrained weights
+        -l 2019                                  \  # 2019 test data
+        -t 24                                    \  # Prediction lead time
+        -max_evaluation 10000                    \  # Number of SHAP evaluations. More -> smaller superpixels, but longer time.
+        --masker color=0.5                       \  # Simulate removing input features by replacement with value 0.5
+        -o output_shap.pickle
+
 
 ## Data format
 
