@@ -3,25 +3,28 @@
 # The optimal threshold is calculated after training
 
 import numpy as np
+import pandas as pd
 import os
 from optparse import OptionParser
 
 def binarize(probs, threshold):
-    fogProbs = probs[:,1]
-    classes = ~ (fogProbs > threshold)
-    classes= classes.astype("int")
+    probs = probs[:,1]
+    classes = [0]*len(probs)
+    yes = probs > threshold
+    classes = classes + yes
+    classes = classes.astype("int")
     return classes
 
 
 def main():
     parser = OptionParser()
     parser.add_option("-p", "--predictions",
-                      help="Path to probabilistic predictions. Space-separated file where column 1 is fog probability, and column 2 is non-fog.")
+                      help="Path to probabilistic predictions csv with colums 'pred_fog', 'pred_non'.")
     parser.add_option("-t", "--threshold",
                       help="Threshold for converting fog probability to fog classification  [default = %default].",
                       default=0.129, type="float")
     parser.add_option("-o", "--output",
-                      help="Path to save the output binary predictions")
+                      help="Path to save the output binary predictions csv.")
     (options, args) = parser.parse_args()
 
     predFile = options.predictions
@@ -40,7 +43,8 @@ def main():
         exit(1)
 
     # Load predicted probabilities
-    preds = np.loadtxt(predFile)
+    dfPreds = pd.read_csv(predFile)
+    preds = np.vstack(dfPreds.to_numpy())
     # Binarize with threshold
     classes = binarize(preds, threshold)
     # Count
@@ -48,7 +52,10 @@ def main():
     # Save (with added binary column)
     classes = np.reshape(classes, (len(classes), 1))
     preds = np.concatenate((preds, classes), axis=1)
-    np.savetxt(outFile, preds)
+
+    dfPreds["pred_class"] = classes
+    dfPreds["pred_className"] = ["fog" if c == 0 else "non-fog" for c in classes]
+    dfPreds.to_csv(outFile, index=False)
 
     print("")
     print("Predictions file: {}".format(predFile))
@@ -59,7 +66,6 @@ def main():
     print("Non-fog cases: {}".format(numNonFog))
     print("")
     print("Output file: {}".format(outFile))
-    print("  Columns: class 0 prob (fog), class 1 prob (non-fog), class")
     print("")
 
 

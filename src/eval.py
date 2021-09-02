@@ -4,6 +4,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 import os
 import numpy as np
+import pandas as pd
 from optparse import OptionParser
 from tensorflow.keras.utils import multi_gpu_model
 
@@ -125,22 +126,23 @@ def writePreds(preds, outFile=None):
         for i, p in enumerate(preds):
             print("{}:  {}".format(i, p))
     else:
-        # Save output to file
-        np.savetxt(outFile, preds)
+        # Save output to csv
+        dfPreds = pd.DataFrame(preds, columns=["pred_fog", "pred_non"])
+        dfPreds.to_csv(outFile, index=False)
 
 
 def main():
     parser = OptionParser()
     parser.add_option("-w", "--weights",
-                      help="Path to trained model weights")
+                      help="Path to trained model weights.")
     parser.add_option("-d", "--directory",
-                      help="Path to directory with fog data cubes")
+                      help="Path to directory with fog data cubes.")
     parser.add_option("-l", "--label",
-                      help="Unique label to identify data cubes in data directory")
+                      help="Comma-delimited list of unique labels to identify data cubes in data directory.")
     parser.add_option("-t", "--time_horizon",
-                      help="Prediction time horizon")
+                      help="Prediction time horizon.")
     parser.add_option("-o", "--output_predictions",
-                      help="Path to file to save predictions")
+                      help="Path to file to save predictions csv.")
     parser.add_option(      "--filters",
                       help="Number of filters [default = %default].",
                       default=24, type="int")
@@ -148,14 +150,14 @@ def main():
                       help="Droput rate [default = %default].",
                       default=0.3, type="float")
     parser.add_option("-v", "--verbose",
-                      help="Verbose output",
+                      help="Verbose output.",
                       default=False, action="store_true")
     (options, args) = parser.parse_args()
 
     # Data options
     weightsFile = options.weights
     dataDir = options.directory
-    dataLabel = options.label
+    dataLabels = options.label.split(",")
     dataTime = options.time_horizon
 
     # Architecture params
@@ -168,8 +170,6 @@ def main():
     # Print options
     verbose = options.verbose
 
-    validateOptions(weightsFile, dataLabel, dataTime, dataDir)
-
     # Print information
     if verbose:
         print("Running FogNet")
@@ -181,14 +181,22 @@ def main():
         print("Data cubes:")
         printTemplate(dir=dataDir, label=dataLabel, time=dataTime)
 
-    # Load data cubes from files
-    cubes, cubeShapes = loadCubes(dataDir, dataLabel, dataTime)
+    preds_ = []
 
-    # Initialize model
-    model = initModel(cubeShapes, weightsFile, filters, dropout)
+    for dataLabel in dataLabels:
+        # Load data cubes from files
+        cubes, cubeShapes = loadCubes(dataDir, dataLabel, dataTime)
 
-    # Get predictions
-    preds = evalModel(model, cubes)
+        # Initialize model
+        model = initModel(cubeShapes, weightsFile, filters, dropout)
+
+        # Get predictions
+        preds = evalModel(model, cubes)
+
+        # Concat
+        preds_.append(preds)
+
+    preds = np.vstack(preds_)
 
     # Output predictions
     writePreds(preds, outFile)

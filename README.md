@@ -85,36 +85,83 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
 
 ## Quickstart
 
+The following scripts have additional options not shown. 
+Review the options of each with `--help`. For example, `python src/train.py --help`.
+
     # If not already, activate environment
     conda activate fognet
 
-	# Training
-	#   (--force is used to overwrite existing test output directory)
+**Train model from scratch**
+
 	python src/train.py \           
                     --num_gpus 4 \ # Number of GPUs to use 
                     -o test        # Path to output trained model weights, reports
 
+**Prediction & evaluation (training date) with provided pre-trained model**
+
     # Prediction
-    python src/eval.py -w test/weights.h5                   \ # Saved weights of trained FogNet
-                   -d /data1/fog/fognn/Dataset/24HOURS/INPUT/  \ # Path to FogNet data
-                   -l 2019               \                       # The "$LABEL", files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
-                   -t 24                 \                       # The "$TIME",  files have format 'NETCDF_NAM_CUBE_$LABEL_PhG3_$TIME.npz'
-                   -o output_preds.txt   \                       # Path to save the output predictions
-                   --filters 24          \                       # Must match the trained weights' model
-                   --dropout 0.3                                 # Must match the trained weights' model
+    python src/eval.py \
+        -w trained_model/single_gpu_weights.h5  \  # pre-trained weights
+        -d ../fognn/Dataset/24HOURS/INPUT/      \  # See data download steps for path
+        -l 2018,2019,2020                       \  # training data years  (selects files from data dir)
+        -t 24                                   \  # prediction lead time (selects files from data dir)
+        -o trained_model/test_preds.csv
 
-    # Binary prediction (apply optimal threshold)
-    python src/applyThreshold.py \
-        -p output_preds.txt \         # Generated from prediction step, above
-        -t 0.129            \         # Found in `test/run_testing_0_report.txt`
-        -o output_class.txt           # Output with added column for selected class
+    # Inspect result
+    head trained_model/test_preds.csv
 
-    # Calculate performance metrics & determine optimal prediction threshold
-    # (In case you deleted the training report, or want to recalculate metrics)
-    COMING SOON
+        pred_fog,pred_non
+        1.6408861e-06,0.99999833
+        2.7183332e-05,0.9999728
+        4.1975437e-07,0.9999995
+        7.1297074e-10,1.0
+        2.9359464e-06,0.999997
+        8.034047e-08,0.9999999
+        9.052269e-09,1.0
+        8.032033e-10,1.0
+        5.1191854e-08,1.0
 
-    # Generate custom data cube with selected instances
-    COMING SOON
+
+    # Convert prediction to binary class (apply optimal threshold)
+    python src/applyThreshold.py           \  
+        -p trained_model/test_preds.csv    \  # Generated from prediction step, above
+        -t 0.193                           \  # Found in `trained_model/run_training_0_report.txt`
+        -o trained_model/test_classes.csv 
+
+    # Inspect result
+    head trained_model/test_classes.csv
+
+        pred_fog,pred_non,pred_class,pred_className
+        1.6408861e-06,0.99999833,1,non-fog
+        2.7183332e-05,0.9999728,1,non-fog
+        4.1975437e-07,0.9999995,1,non-fog
+        7.1297074e-10,1.0,1,non-fog
+        2.9359464e-06,0.999997,1,non-fog
+        8.034047e-08,0.9999999,1,non-fog
+        9.052269e-09,1.0,1,non-fog
+        8.032033e-10,1.0,1,non-fog
+        5.1191854e-08,1.0,1,non-fog
+
+
+    # Calculate metrics & add column with outcome (hit, false alarm, miss, correct-reject)
+    python src/calcMetrics.py              \
+        -p trained_model/test_classes.csv  \  # Generated from threshold step, above
+        -t trained_model/test_targets.txt  \  # List of target classes, one per line
+        -o trained_model/test_outcomes.csv
+
+    # Inspect result
+    head trained_model/test_outcomes.csv
+
+        pred_fog,pred_non,pred_class,pred_className,target_class,target_className,outcome,outcome_name
+        1.6408861e-06,0.99999833,1,non-fog,1,non-fog,d,correct-reject
+        2.7183332e-05,0.9999728,1,non-fog,1,non-fog,d,correct-reject
+        4.1975437e-07,0.9999995,1,non-fog,1,non-fog,d,correct-reject
+        7.1297074e-10,1.0,1,non-fog,1,non-fog,d,correct-reject
+        2.9359464e-06,0.999997,1,non-fog,1,non-fog,d,correct-reject
+        8.034047e-08,0.9999999,1,non-fog,1,non-fog,d,correct-reject
+        9.052269e-09,1.0,1,non-fog,1,non-fog,d,correct-reject
+        8.032033e-10,1.0,1,non-fog,1,non-fog,d,correct-reject
+        5.1191854e-08,1.0,1,non-fog,1,non-fog,d,correct-reject
 
 
 ## (Experimental!!) Run XAI methods
@@ -123,6 +170,8 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
     
     # Install packages
     pip install git+https://github.com/conrad-blucher-institute/shap.git
+
+    # We had to downgrade a package for compatiability
     pip uninstall h5py
     pip install h5py==2.10.0
     
@@ -137,101 +186,6 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
         --dropout 0.3                       \ # Must match the trained weights' model 
         -max_evaluation 10000               \ # Max number of SHAP evals -> controls explanation granularity (higher -> smaller superpixels)
         --masker color=0.5                  \ # Masker method, here replacement by '0.5'
-
-
-## Training script `train.py` options
-
-	Usage: train.py [options]
-	
-	Options:
-	  -h, --help            show this help message and exit
-	  -n NAME, --name=NAME  Model name [default = test].
-	  -d DIRECTORY, --directory=DIRECTORY
-	                        Fog dataset directory [default = /data1/fog/Dataset/].
-	  -o OUTPUT_DIRECTORY, --output_directory=OUTPUT_DIRECTORY
-	                        Output results directory [default = none].
-	  --force               Force overwrite of existing output directory [default
-	                        = False].
-	  -t TIME_HORIZON, --time_horizon=TIME_HORIZON
-	                        Prediction time horizon [default = 24].
-	  --train_years=TRAIN_YEARS
-	                        Comma-delimited list of training years [default =
-	                        2013,2014,2015,2016,2017].
-	  --val_years=VAL_YEARS
-	                        Comma-delimited list of validation years [default =
-	                        2009,2010,2011,2012].
-	  --test_years=TEST_YEARS
-	                        Comma-delimited list of testing years [default =
-	                        2018,2019,2020].
-	  -v VISIBILITY_CLASS, --visibility_class=VISIBILITY_CLASS
-	                        Visibility class [default = 0].
-	  -b BATCH_SIZE, --batch_size=BATCH_SIZE
-	                        Training batch size [default = 32].
-	  -e EPOCHS, --epochs=EPOCHS
-	                        Training epochs [default = 30].
-	  --learning_rate=LEARNING_RATE
-	                        Learning rate [default = 0.0009].
-	  --weight_penalty=WEIGHT_PENALTY
-	                        Weight penalty [default = 0.001].
-	  --filters=FILTERS     Number of filters [default = 24].
-	  --dropout=DROPOUT     Droput rate [default = 0.3].
-
-
-## Prediction script `eval.py` options
-
-    Usage: eval.py [options]
-
-    Options: 
-      -h, --help            show this help message and exit 
-      -w WEIGHTS, --weights=WEIGHTS
-                            Path to trained model weights
-      -d DIRECTORY, --directory=DIRECTORY
-                            Path to directory with fog data cubes
-      -l LABEL, --label=LABEL
-                            Unique label to identify data cubes in data directory
-      -t TIME_HORIZON, --time_horizon=TIME_HORIZON
-                            Prediction time horizon
-      -o OUTPUT_PREDICTIONS, --output_predictions=OUTPUT_PREDICTIONS
-                            Path to file to save predictions
-      --filters=FILTERS     Number of filters [default = 24].
-      --dropout=DROPOUT     Droput rate [default = 0.3].
-      -v, --verbose         Verbose output 
-
-
-## XAI script `xaiPartitionShap.py` options
-
-
-    Usage: xaiPartitionShap.py [options]
-    
-    Options:
-      -h, --help            show this help message and exit
-      -o OUTPUT_SHAP_VALUES, --output_shap_values=OUTPUT_SHAP_VALUES
-                            Path to save pickled SHAP values.
-      -w WEIGHTS, --weights=WEIGHTS
-                            Path to trained model weights [default =
-                            trained_weights.h5].
-      -d DIRECTORY, --directory=DIRECTORY
-                            Path to directory with fog data cubes [default =
-                            /data1/fog/fognn/Dataset/24HOURS/INPUT/].
-      -l LABEL, --label=LABEL
-                            Unique label to identify data cubes in data directory
-                            [default = 2019].
-      -t TIME_HORIZON, --time_horizon=TIME_HORIZON
-                            Prediction time horizon [default = 24].
-      -i FILTERS, --filters=FILTERS
-                            Number of filters [default = 24].
-      -j DROPOUT, --dropout=DROPOUT
-                            Droput rate [default = 0.3].
-      -c CASES, --cases=CASES
-                            Path to list of indices in data cube to evaluate. If
-                            none, use all.
-      -e MAX_EVALUATIONS, --max_evaluations=MAX_EVALUATIONS
-                            Maximum number of SHAP evaluations [default = 50000].
-      -m MASKER, --masker=MASKER
-                            Feature removal masking method. Examples are
-                            `blur=10,10` and `color=128`. The blur numbers must be
-                            positive. [default = color=0.5].
-
 
 ## Data format
 
