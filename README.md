@@ -198,7 +198,7 @@ Review the options of each with `--help`. For example, `python src/train.py --he
         -w trained_model/single_gpu_weights.h5   \        # Pretrained weights
         -l 2019                                  \        # 2019 test data
         -t 24                                    \        # Prediction lead time
-        -max_evaluation 10000                    \        # Number of SHAP evaluations. More -> smaller superpixels, but longer time.
+        --max_evaluations 10000                    \        # Number of SHAP evaluations. More -> smaller superpixels, but longer time.
         --masker color=0.5                       \        # Simulate removing input features by replacement with value 0.5
         -o trained_model/shap_sample_values.pickle
 
