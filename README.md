@@ -103,7 +103,7 @@ Review the options of each with `--help`. For example, `python src/train.py --he
                     --num_gpus 4 \ # Number of GPUs to use 
                     -o test        # Path to output trained model weights, reports
 
-**Prediction & evaluation (training date) with provided pre-trained model**
+**Prediction & evaluation (training data) with provided pre-trained model**
 
     # Prediction
     python src/eval.py \
