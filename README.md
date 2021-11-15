@@ -75,6 +75,8 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
     conda install tensorflow-gpu==2.1.0
     # Install other python packages
     pip install matplotlib seaborn netCDF4 scikit-learn
+    # Fix HD5 package compatability, revert to older version
+    pip install 'h5py==2.10.0'
 
 #### For Ubuntu 18.08
 
