@@ -42,7 +42,7 @@ Options exist to customize the exact prediction task that the model is for.
 **Time horizon (hours):** how many hours ahead is the prediction? The data supports 6, 12, and 24. 
 
 **Visibility class (meters):** Visibility threshold to be considered fog to predict with model. 
-The targets file supports classes 1660, 3200, 6400. 
+The targets file supports classes 1600, 3200, 6400. 
 
 ## Sample trained model
 
@@ -75,6 +75,8 @@ First, [install Anaconda by following their documentation](https://docs.anaconda
     conda install tensorflow-gpu==2.1.0
     # Install other python packages
     pip install matplotlib seaborn netCDF4 scikit-learn
+    # Fix HD5 package compatability, revert to older version
+    pip install 'h5py==2.10.0'
 
 #### For Ubuntu 18.08
 
