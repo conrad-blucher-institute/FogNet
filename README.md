@@ -1,5 +1,11 @@
 # FogNet
+
+[https://gridftp.tamucc.edu/fognet/](https://gridftp.tamucc.edu/fognet/)
+
 A multiscale 3D CNN with double-branch dense block and attention mechanism for fog prediction
+
+![FogNet Overview](https://gridftp.tamucc.edu/fognet/datashare/figures/FogNetOverview.png)
+
 
 ## Publications
 
@@ -19,7 +25,8 @@ Citation:
 ## Todo
 
 - [x] Add source code to repo by June 1
-- [ ] Add scripts to download, format data
+- [x] Add pre-build (processed) input data (rasters of predictors), to allow replicating results
+- [ ] Add scripts to download, format data from scratch (for new data instances)
 
 ## Optimal threshold
 
@@ -48,12 +55,36 @@ The targets file supports classes 1600, 3200, 6400.
 
 The subdirectory `trained_model` includes the outputs of training FogNet.
 The trained model was for 24-hour time horizon, and 1600 meter visibility class. 
+Note that it is quite large, so that [Git LFS](https://git-lfs.github.com/) is required to clone it. 
+Otherwise, will be a dummy text file and the model won't work.
 
 ## Download & format data
 
 **Data availability:** [North American Mesoscale (NAM) 12km avalable in grib2 format](ftp://ftp.ncep.noaa.gov/pub/data/nccf/com/nam/prod/nam.YYYYMMDD)
 
-Steps to download and format for FogNet coming soon!
+You can either: 
+
+1. Generate the FogNet data from the original NAM, MUR sources. (**tutorial coming soon!**)
+2. Download and use the pre-built FogNet predictor datasets (to replicate our published results)
+
+### 1. Generate from-scratch FogNet data
+
+- Use the [FogHat utilities](https://github.com/conrad-blucher-institute/foghat) to download the NetCDF files
+- Convert into rasters for each of the meterological groups <- **We are working on a script to do this!**
+
+### 2. Download pre-built FogNet input predictors
+
+Archive: https://gridftp.tamucc.edu/fognet/datashare/archive/datasets/ 
+
+Every subforlder in the [archive](https://gridftp.tamucc.edu/fognet/datashare/archive/datasets/)
+is a specific FogNet dataset. For example, `24HOURS` contains the predictors (years 2009-2020) to train or use FogNet with a 24-hour lead time.
+
+- You can download a single dataset, for example 24-hours: `wget  -m  https://gridftp.tamucc.edu/fognet/datashare/archive/datasets/24HOURS`
+- Or all the datasets: `wget  -m  https://gridftp.tamucc.edu/fognet/datashare/archive/datasets/`
+
+In the rest of this `README.md`, we will refer to the directory with your datasets as `$DATASETS`
+
+Thus, if you are training a 24-hour model, you will use the dataset at `$DATASETS/24HOUR/`
 
 ## Installation (Linux)
 
@@ -110,7 +141,7 @@ Review the options of each with `--help`. For example, `python src/train.py --he
     # Prediction
     python src/eval.py \
         -w trained_model/single_gpu_weights.h5  \  # pre-trained weights
-        -d ../fognn/Dataset/24HOURS/INPUT/      \  # See data download steps for path
+        -d $DATASETS/24HOURS/INPUT/      \  # See data download steps for path
         -l 2018,2019,2020                       \  # training data years  (selects files from data dir)
         -t 24                                   \  # prediction lead time (selects files from data dir)
         -o trained_model/test_preds.csv
@@ -195,7 +226,7 @@ Review the options of each with `--help`. For example, `python src/train.py --he
 
     # Run Channel-wise PartitionShap on those instances (from 2019 data)
     python src/xaiPartitionShap.py               \
-        -d ../fognn/Dataset/24HOURS/INPUT/       \        # See data download steps for path
+        -d $DATASETS/24HOURS/INPUT/       \        # See data download steps for path
         --cases trained_model/shap_sample_instances.txt \ # List of instances (row numbers) to explain
         -w trained_model/single_gpu_weights.h5   \        # Pretrained weights
         -l 2019                                  \        # 2019 test data
@@ -207,9 +238,9 @@ Review the options of each with `--help`. For example, `python src/train.py --he
 
 ## Data format
 
-Example dataset format, where $TIME=24 and $LABEL=2009
+Example dataset format, under directory $DATASETS, where $TIME=24 and $LABEL=2009
 
-	Dataset/
+	$DATASETS/
 	├── 24HOURS
 	│   ├── INPUT
 	│   │   ├── NETCDF_MIXED_CUBE_2019_24.npz
