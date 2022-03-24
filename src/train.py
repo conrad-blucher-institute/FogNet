@@ -53,7 +53,7 @@ parser.add_option("-n", "--name",
 # Directories
 parser.add_option("-d", "--directory",
     help="Fog dataset directory\n[default = %default].",
-    default="/data1/fog/Dataset/")
+    default="/data1/fog/fognn/Dataset/")
 parser.add_option("-o", "--output_directory",
     help="Output results directory [default = %default].")
 parser.add_option(      "--force",
