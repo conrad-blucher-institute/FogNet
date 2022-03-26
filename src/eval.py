@@ -6,7 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 from optparse import OptionParser
-from tensorflow.keras.utils import multi_gpu_model
+#from tensorflow.keras.utils import multi_gpu_model
 
 # Fognet modules
 import FogNet

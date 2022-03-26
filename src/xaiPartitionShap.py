@@ -89,7 +89,7 @@ def main():
 
     cases = None
     if casesFile is not None:
-        cases = np.loadtxt(casesFile).astype("int")
+        cases = np.loadtxt(casesFile, comments=['#', '$', '@']).astype("int")
 
     # Load data
     cubes, cubeShapes = eval.loadCubes(dataDir, dataLabel, dataTime)
