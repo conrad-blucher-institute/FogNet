@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix
 # FogNet imports
 import eval
 
-def evalPFI(cubesArray, cubes, model, sst_cube, storage):
+def evalPFI(cubesArray, cubes, model, sst_cube, storage, sst_hack=False):
     pS = 0
     pN = cubes[0].shape[3]
     storage[0][...] = np.reshape(cubesArray[:,:,:,pS:pN],
@@ -40,6 +40,17 @@ def evalPFI(cubesArray, cubes, model, sst_cube, storage):
 
     # Temp hack for SST
     storage[5][...] = sst_cube
+
+    if (sst_hack):
+        # Resize mask from (32, 32) to SST's (384, 384)
+        mask = cubesArray[0, :, :, -1]  # The hack was to store the mask in the SST slot
+        mask = mask.repeat(12, axis=0).repeat(12, axis=1)
+        mask = mask.astype("bool")
+
+        # Apply mask to permute SST
+        # Replace superpixel with random values
+        rands = np.random.permutation(sst_cube)
+        storage[5][:,:,:,0,0] = rands[:,:,:,0,0] * mask + storage[5][:,:,:,0,0] * np.invert(mask)
 
     # Return prediction
     return eval.evalModel(model, storage)
@@ -212,20 +223,28 @@ def main():
 
     # Perform PFI
     start_time = time.time()
+    sst_idx = bands - 1
+    sst_hack = False
     for r in range(repeats):
         for b in range(bands):
+            sst_hack = False
             # Backup original bands
             band_backup[...] = cubesArray[:, :, :, b]
 
             for m, mask in enumerate(mask_set):
-                # Replace superpixel with random values
-                # TODO: permute existing instead of random to match Hamid's
-                #rands[...] = np.random.random(size=(samples, rows, cols))
-                rands[...] = np.random.permutation(band_backup)
-                cubesArray[:, :, :, b] = rands * mask + cubesArray[:, :, :, b] * np.invert(mask)
+
+                # SST hack
+                if b == sst_idx:
+                    sst_hack = True
+                    # Store the actual mask
+                    cubesArray[:, :, :, b] = cubesArray[:, :, :, b] * mask
+                else:
+                    # Replace superpixel with random values
+                    rands[...] = np.random.permutation(band_backup)
+                    cubesArray[:, :, :, b] = rands * mask + cubesArray[:, :, :, b] * np.invert(mask)
 
                 # Evaluate model with permuted superpixel
-                preds[...] = evalPFI(cubesArray, cubes, model, sst_cube, storage)
+                preds[...] = evalPFI(cubesArray, cubes, model, sst_cube, storage, sst_hack = sst_hack)
 
                 # Revert band to original data
                 cubesArray[:, :, :, b] = band_backup
@@ -239,7 +258,7 @@ def main():
                 # Clean up memory to get ready for next loop
                 gc.collect()
 
-                print("Mask {} / {}".format(m, mask_set.shape[0]))
+                print("Mask {} / {}".format(m + 1, mask_set.shape[0]))
             print("Repeat {}, channel {}, elapsed time: {} seconds.".format(r + 1, b, time.time() - start_time))
     end_time = time.time()
 
