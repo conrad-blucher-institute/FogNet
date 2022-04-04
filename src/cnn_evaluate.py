@@ -206,11 +206,11 @@ def ROC_Curve_Plot(optimal_threshold, accuray_list, results):
             1, 1, figsize=(10, 10)
         )
         
-    O_POD = accuray_list[0]
-    O_HSS = accuray_list[5]
-    O_FAR = accuray_list[2] 
-    POD = results[:, 0] 
-    FAR = results[:, 2]
+    O_POD = accuray_list[4]
+    O_HSS = accuray_list[9]
+    O_FAR = accuray_list[6] 
+    POD = results[:, 4] 
+    FAR = results[:, 6]
     FAR = np.nan_to_num(FAR, nan = 1)
     FAR = np.sort(FAR)
 
@@ -244,7 +244,16 @@ def ROC_Curve_Plot(optimal_threshold, accuray_list, results):
     
     
     
-    
+def print_results(tr_acc, te_acc):
+    print("Hit/Miss cases: ")
+    print(f"       Hit    Miss    False Alarm   Correct rejected")
+    print(f"Train  {int(tr_acc[0])}      {int(tr_acc[1])}         {int(tr_acc[2])}              {int(tr_acc[3])}")
+    print(f"Test   {te_acc[0]}      {te_acc[1]}        {te_acc[2]}              {te_acc[3]}")
+    print()
+    print("Metrics:")
+    print(f"       POD     F    FAR    CSI    PSS     HSS   ORSS   CSS   SEDI")
+    print(f"Train  {tr_acc[4]:.2f}   {tr_acc[4]:.2f}  {tr_acc[6]:.2f}   {tr_acc[7]:.2f}   {tr_acc[8]:.2f}   {tr_acc[9]:.2f}   {tr_acc[10]:.2f}   {tr_acc[11]:.2f}  {tr_acc[12]:.2f}")
+    print(f"Test   {te_acc[4]:.2f}   {te_acc[5]:.2f}  {te_acc[6]:.2f}   {te_acc[7]:.2f}   {te_acc[8]:.2f}   {te_acc[9]:.2f}   {te_acc[10]:.2f}   {te_acc[11]:.2f}  {te_acc[12]:.2f}")   
     
     
     
