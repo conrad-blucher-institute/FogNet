@@ -48,10 +48,38 @@ def Optimal_Thr(ytrue, ypred):
 
         CSS = ((Hit*CR)-(FA*miss))/((Hit+FA)*(miss+CR))
         results[j, 11] = CSS
-                
+        
         
     return th_list, results
 
+def BS_BSS(ytrue, ypred): 
+
+    ytrue_rev    = ytrue.copy()
+    indices_one  = ytrue_rev == 1
+    indices_zero = ytrue_rev == 0
+    ytrue_rev[indices_one] = 0 # replacing 1s with 0s
+    ytrue_rev[indices_zero] = 1 # replacing 0s with 1s
+    
+    
+    P_c = np.mean(ytrue_rev)
+    bs_init = 0
+    bss_init = 0
+    for e in range(len(ytrue_rev)):
+        bss_init  = bs_init + (P_c - ytrue_rev[e])**2 # average value of fog accurence 
+        
+        if ytrue_rev[e] == 0:
+            prob = ypred[e, 1]
+            bs_init  = bs_init + (prob - 0)**2
+            
+        elif ytrue_rev[e] == 1:
+            prob = ypred[e, 0]
+            bs_init  = bs_init + (prob - 1)**2
+            
+    BS     = bs_init/len(ytrue_rev)
+    BS_ref = bss_init/len(ytrue_rev)
+    BSS    = (1-BS)/BS_ref 
+    
+    return BS, BSS
 
 def skilled_metrics(ytrue, ypred, metric=None): 
     
@@ -60,34 +88,34 @@ def skilled_metrics(ytrue, ypred, metric=None):
     
     # select the best result by maximizing them based on PSS
     if metric == 'PSS':
-        PSS = result_list[:, 8]
+        PSS  = result_list[:, 8]
         raws = np.where(PSS == np.amax(PSS))[-1] 
         length_raws = len(raws) 
         if length_raws == 1:
-            accuray_list = result_list[raws[0], :] 
+            accuray_list      = result_list[raws[0], :] 
             optimal_threshold = threshold_list[raws[0]]
         else:
-            accuray_list = result_list[raws[-1], :] 
+            accuray_list      = result_list[raws[-1], :] 
             optimal_threshold = threshold_list[raws[-1]]
 
     
     # select the best result by maximizing them based on HSS
     elif metric == 'HSS':
         
-        HSS = result_list[:, 9]
+        HSS  = result_list[:, 9]
         raws = np.where(HSS == np.amax(HSS))[-1] 
         length_raws = len(raws) 
         if length_raws == 1:
-            accuray_list = result_list[raws[0], :] 
+            accuray_list      = result_list[raws[0], :] 
             optimal_threshold = threshold_list[raws[0]]
         else:
-            accuray_list = result_list[raws[-1], :]
+            accuray_list      = result_list[raws[-1], :]
             optimal_threshold = threshold_list[raws[-1]]
             
     # select the best result by maximizing them based on CSS
     elif metric == 'CSS':
-        
-        CSS = result_list[:, 11]
+        CSS  = result_list[:, 11]
+        CSS = [x for x in CSS if np.isnan(x) == False]
         raws = np.where(CSS == np.amax(CSS))[-1] 
         length_raws = len(raws) 
         if length_raws == 1:
@@ -97,7 +125,11 @@ def skilled_metrics(ytrue, ypred, metric=None):
             accuray_list = result_list[raws[-1], :]
             optimal_threshold = threshold_list[raws[-1]]
             
-    
+    if accuray_list[4] == 1.0:
+        accuray_list[4] = 0.999  
+        
+    if accuray_list[5] <= 0:
+        accuray_list[5] = 0.009 
     
     SEDI = (log(accuray_list[5]) - log(accuray_list[4]) - log(1-accuray_list[5]) + log(1-accuray_list[4]))/(log(accuray_list[5]) + log(accuray_list[4]) + log(1-accuray_list[5]) + log(1-accuray_list[4]))
     accuray_list = np.append(accuray_list, SEDI)
@@ -129,10 +161,19 @@ def test_eval(ytrue, ypred, threshold = None):
     HSS  = (2*((Hit*CR)-(FA*MISS)))/(((Hit+MISS)*(MISS+CR))+((Hit+FA)*(FA+CR)))
     ORSS = ((Hit*CR)-(FA*MISS))/((Hit*CR)+(FA*MISS))
     CSS  = ((Hit*CR)-(FA*MISS))/((Hit+FA)*(MISS+CR))
+    
+
+    if POD == 1.0:
+        POD = 0.999  
+        
+    if F <= 0:
+        F = 0.009 
+        
     SEDI = (log(F) - log(POD) - log(1-F) + log(1-POD))/(log(F) + log(POD) + log(1-F) + log(1-POD))
     
     
     output = [Hit, MISS, FA, CR, POD, F, FAR, CSI, PSS, HSS, ORSS, CSS, SEDI]
+    #output = [Hit, MISS, FA, CR, POD, F, FAR, CSI, PSS, HSS, ORSS, CSS]
     
     return output
 

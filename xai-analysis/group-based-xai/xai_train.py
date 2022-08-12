@@ -54,9 +54,13 @@ from sklearn.metrics import confusion_matrix, accuracy_score, classification_rep
 #import utils
 #import FogNet
 #import FogNetConfig
-import xai_engine
 
-import utils, FogNet, FogNetConfig, cnn_evaluate
+import sys
+sys.path.append('../')
+from src import utils, FogNet, FogNetConfig, cnn_evaluate, models, xai_engine
+
+#import xai_engine
+#import utils, FogNet, FogNetConfig, cnn_evaluate
 
 
 DEFAULT_IMAGE_DIR_NAME = ('/data1/fog-data/fog-maps/')
@@ -192,15 +196,15 @@ cnn_model_object.compile(optimizer=Adam(lr=learningRate, decay=wd),
       metrics=['accuracy'])
 
 
-#PFI_channels = xai_engine.PFI_channels(cnn_model_object, testing_list, Testing_targets, n_repeats=5, random_state=42)
-#PFI_channels.to_csv('./PFICW.csv')
+PFI_channels = xai_engine.PFI_channels(cnn_model_object, testing_list, Testing_targets, n_repeats=5, random_state=42)
+PFI_channels.to_csv('./PFICW.csv')
 
 
 #PFI_groups = xai_engine.FIGW(cnn_model_object, testing_list, Testing_targets, xai_method = 'PFI', num_iter = 5, random_state=42)
 #PFI_groups.to_csv('./PFIG3.csv')
 
-LossSHAP_groups = xai_engine.FIGW(cnn_model_object, testing_list, Testing_targets, xai_method = 'LossSHAP', num_iter = 5, random_state=42)
-LossSHAP_groups.to_csv('./LossSHAP5.csv')
+#LossSHAP_groups = xai_engine.FIGW(cnn_model_object, testing_list, Testing_targets, xai_method = 'LossSHAP', num_iter = 5, random_state=42)
+#LossSHAP_groups.to_csv('./LossSHAP5.csv')
 
 
 

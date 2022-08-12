@@ -5,7 +5,7 @@ from tensorflow.keras.layers import concatenate
 from tensorflow.keras.layers import Add, add, Reshape, BatchNormalization, Input, Dense, Dropout, Flatten, multiply
 from tensorflow.keras.layers import Conv2D, Conv3D, MaxPooling2D, MaxPooling3D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling2D, GlobalAveragePooling3D
 from tensorflow.keras.layers import ReLU, PReLU, Activation, LeakyReLU
-import FogNetConfig
+from src import FogNetConfig
 
 class FogNet():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes):
