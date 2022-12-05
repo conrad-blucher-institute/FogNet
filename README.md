@@ -235,7 +235,45 @@ Review the options of each with `--help`. For example, `python src/train.py --he
         --masker color=0.5                       \        # Simulate removing input features by replacement with value 0.5
         -o trained_model/shap_sample_values.pickle
 
+**Run XAI script: Permutation Feature Importance (PFI) on Channel-wise SuperPixels (CwSP)**
 
+PFI is a global XAI method: the explanations is based on a set of data samples to describe overall model behavior. Specifically, PFI attempts to characterize how each feature influences model performance. Here, the features are superpixels within each input raster channel.
+
+
+	# Run PFI on CwSPs 
+	python src/xaiChannelWiseSuperPixels.py \
+		--weights trained_model/single_gpu_weights.h5  \  # Pretrained weights
+		--labels 2018,2019,2020                        \  # Test data years
+		--targets trained_model/test_targets.txt       \  # Test data target values
+		--directory $DATASETS/24HOURS/INPUT/           \  # Input data
+		--t 24 \
+		--threshold 0.129                              \  # Threshold for converting fog probability to fog classification
+		--shape 8,8                                    \  # Superpixel dimensions (height,width)
+		--repeats 2                                    \  # Number of PFI repeats (output is average of them all)
+		-o trained_model/pfi_sample_values.npz     # Output PFI values
+	
+	
+- The output file `trained_model/pfi_sample_values.npz` is a compressed numpy output. 
+- It has 5 data values. Four are the PFI values based on 4 different skill metrics: HSS, PSS, CSI, and CSS
+- The Fifth data has the base values of those 4 metrics (base values are the model metric without any changes)
+- Each PFI values is stored as numpy array where each [row, col, channel] is a superpixel's importance score for a superpixel in that channel
+
+Access the values in python like so: 
+
+	import numpy as np
+	f = trained_model/pfi_sample_values.npz
+	data = np.load(f)
+	
+	# Get the base values
+	base_values = data["base_values"]
+	
+	# Get the skill metrics
+	pfi_hss = data["pfi_hss"]
+	pfi_pss = data["pfi_pss"]
+	pfi_csi = data["pfi_csi"]
+	pfi_css = data["pfi_css"]
+	
+	
 ## Data format
 
 Example dataset format, under directory $DATASETS, where $TIME=24 and $LABEL=2009
