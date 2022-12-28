@@ -142,7 +142,6 @@ def PFI_channels(model_object, input_data, input_target, n_repeats=None, random_
                 this_hss.append(metric_list[9])
                 this_css.append(metric_list[11])
 
-
             feature_name   = GNames[f]
             fnames.append(feature_name)
             gnames.append(g)
@@ -157,7 +156,6 @@ def PFI_channels(model_object, input_data, input_target, n_repeats=None, random_
             std_css.append(statistics.pstdev(this_css)) 
 
             print(f"{GNames[f]}| PSS = {statistics.mean(this_pss):.2f}, {statistics.pstdev(this_pss):.2f}| HSS = {statistics.mean(this_hss):.2f}, {statistics.pstdev(this_hss):.2f}| CSS = {statistics.mean(this_css):.2f}, {statistics.pstdev(this_css):.2f}")
-        
 
 
     df['Group']      = gnames
