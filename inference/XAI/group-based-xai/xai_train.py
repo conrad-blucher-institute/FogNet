@@ -36,6 +36,9 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 
 from scipy.io import loadmat
 from tensorflow.keras.callbacks import EarlyStopping
+from Hamid.FogNet import xai_engine
+
+from Hamid.FogNet.model import models
 
 
 '''import keras.backend.tensorflow_backend as tfback
@@ -57,7 +60,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, classification_rep
 
 import sys
 sys.path.append('../')
-from src import utils, FogNet, FogNetConfig, cnn_evaluate, models, xai_engine
+from src import utils, FogNet, FogNetConfig, cnn_evaluate
 
 #import xai_engine
 #import utils, FogNet, FogNetConfig, cnn_evaluate
