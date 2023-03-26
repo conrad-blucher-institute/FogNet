@@ -61,6 +61,10 @@ def main():
     # These model outputs have been previously
     # generated and stored
     #
+    # In the FogNet repo, stored as 
+    #       inference/XAI/group-based-xai/SHAP.zip
+    # So you may need to unzip it
+    #
     # Example:
     #   `tree SHAP | head -n 15`
     #   SHAP
@@ -79,8 +83,8 @@ def main():
     #   │   ├── history.h5
     #   │   ├── loss.png
     parser.add_option("-s", "--shap_dir",
-        default="/data1/fog/Hamid/old-codes/Hamid/FogNetImport/SHAP/",
-        help="Path to directory with SHAP-based model outputs")
+        default="inference/XAI/group-based-xai/SHAP/",
+        help="Path to directory with SHAP-based model outputs. Double-check that its unzipped.")
 
     (options, args) = parser.parse_args()
 
