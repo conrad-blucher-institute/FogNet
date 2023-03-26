@@ -1,0 +1,6 @@
+group,permutation_pss,permutation_hss,hold-out_pss_opt-pss,hold-out_pss_opt-hss,hold-out_hss_opt-pss,hold-out_hss_opt-hss,lossShap
+1,1.53,1.46,30.39,26.55,16.02,21.44,4
+2,1.35,-0.14,39.95,23.39,23.96,37.32,0.7
+3,1.44,0.67,35.08,34.08,35.1,42.1,7.89
+4,1.26,-0.98,25.83,-0.31,13.88,41.7,8.47
+5,1.63,2.23,22.68,6.71,14.95,35.58,5.32
