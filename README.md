@@ -140,14 +140,14 @@ Review the options of each with `--help`. For example, `python src/train.py --he
 
     # Prediction
     python src/eval.py \
-        -w trained_model/single_gpu_weights.h5  \  # pre-trained weights
+        -w inference/trained_model/single_gpu_weights.h5  \  # pre-trained weights
         -d $DATASETS/24HOURS/INPUT/      \  # See data download steps for path
         -l 2018,2019,2020                       \  # training data years  (selects files from data dir)
         -t 24                                   \  # prediction lead time (selects files from data dir)
-        -o trained_model/test_preds.csv
+        -o inference/trained_model/test_preds.csv
 
     # Inspect result
-    head trained_model/test_preds.csv
+    head inference/trained_model/test_preds.csv
 
         pred_fog,pred_non
         1.6408861e-06,0.99999833
@@ -163,12 +163,12 @@ Review the options of each with `--help`. For example, `python src/train.py --he
 
     # Convert prediction to binary class (apply optimal threshold)
     python src/applyThreshold.py           \  
-        -p trained_model/test_preds.csv    \  # Generated from prediction step, above
-        -t 0.193                           \  # Found in `trained_model/run_training_0_report.txt`
-        -o trained_model/test_classes.csv 
+        -p inference/trained_model/test_preds.csv    \  # Generated from prediction step, above
+        -t 0.193                           \  # Found in `inference/trained_model/run_training_0_report.txt`
+        -o inference/trained_model/test_classes.csv 
 
     # Inspect result
-    head trained_model/test_classes.csv
+    head inference/trained_model/test_classes.csv
 
         pred_fog,pred_non,pred_class,pred_className
         1.6408861e-06,0.99999833,1,non-fog
@@ -184,12 +184,12 @@ Review the options of each with `--help`. For example, `python src/train.py --he
 
     # Calculate metrics & add column with outcome (hit, false alarm, miss, correct-reject)
     python src/calcMetrics.py              \
-        -p trained_model/test_classes.csv  \  # Generated from threshold step, above
-        -t trained_model/test_targets.txt  \  # List of target classes, one per line
-        -o trained_model/test_outcomes.csv
+        -p inference/trained_model/test_classes.csv  \  # Generated from threshold step, above
+        -t inference/trained_model/test_targets.txt  \  # List of target classes, one per line
+        -o inference/trained_model/test_outcomes.csv
 
     # Inspect result
-    head trained_model/test_outcomes.csv
+    head inference/trained_model/test_outcomes.csv
 
         pred_fog,pred_non,pred_class,pred_className,target_class,target_className,outcome,outcome_name
         1.6408861e-06,0.99999833,1,non-fog,1,non-fog,d,correct-reject
@@ -218,7 +218,7 @@ Review the options of each with `--help`. For example, `python src/train.py --he
     
     # PartitionShap too slow to run all 2228 instances
     # Already made a file with 4 selected
-    # head trained_model/shap_sample_instances.txt
+    # head inference/trained_model/shap_sample_instances.txt
 
         100
         200
@@ -227,13 +227,13 @@ Review the options of each with `--help`. For example, `python src/train.py --he
     # Run Channel-wise PartitionShap on those instances (from 2019 data)
     python src/xaiPartitionShap.py               \
         -d $DATASETS/24HOURS/INPUT/       \        # See data download steps for path
-        --cases trained_model/shap_sample_instances.txt \ # List of instances (row numbers) to explain
-        -w trained_model/single_gpu_weights.h5   \        # Pretrained weights
+        --cases inference/trained_model/shap_sample_instances.txt \ # List of instances (row numbers) to explain
+        -w inference/trained_model/single_gpu_weights.h5   \        # Pretrained weights
         -l 2019                                  \        # 2019 test data
         -t 24                                    \        # Prediction lead time
         --max_evaluations 10000                    \        # Number of SHAP evaluations. More -> smaller superpixels, but longer time.
         --masker color=0.5                       \        # Simulate removing input features by replacement with value 0.5
-        -o trained_model/shap_sample_values.pickle
+        -o inference/trained_model/shap_sample_values.pickle
 
 **Run XAI script: Permutation Feature Importance (PFI) on Channel-wise SuperPixels (CwSP)**
 
@@ -242,18 +242,18 @@ PFI is a global XAI method: the explanations is based on a set of data samples t
 
 	# Run PFI on CwSPs 
 	python src/xaiChannelWiseSuperPixels.py \
-		--weights trained_model/single_gpu_weights.h5  \  # Pretrained weights
+		--weights inference/trained_model/single_gpu_weights.h5  \  # Pretrained weights
 		--labels 2018,2019,2020                        \  # Test data years
-		--targets trained_model/test_targets.txt       \  # Test data target values
+		--targets inference/trained_model/test_targets.txt       \  # Test data target values
 		--directory $DATASETS/24HOURS/INPUT/           \  # Input data
 		--t 24 \
 		--threshold 0.129                              \  # Threshold for converting fog probability to fog classification
 		--shape 8,8                                    \  # Superpixel dimensions (height,width)
 		--repeats 2                                    \  # Number of PFI repeats (output is average of them all)
-		-o trained_model/pfi_sample_values.npz     # Output PFI values
+		-o inference/trained_model/pfi_sample_values.npz     # Output PFI values
 	
 	
-- The output file `trained_model/pfi_sample_values.npz` is a compressed numpy output. 
+- The output file `inference/trained_model/pfi_sample_values.npz` is a compressed numpy output. 
 - It has 5 data values. Four are the PFI values based on 4 different skill metrics: HSS, PSS, CSI, and CSS
 - The Fifth data has the base values of those 4 metrics (base values are the model metric without any changes)
 - Each PFI values is stored as numpy array where each [row, col, channel] is a superpixel's importance score for a superpixel in that channel
@@ -261,7 +261,7 @@ PFI is a global XAI method: the explanations is based on a set of data samples t
 Access the values in python like so: 
 
 	import numpy as np
-	f = trained_model/pfi_sample_values.npz
+	f = inference/trained_model/pfi_sample_values.npz
 	data = np.load(f)
 	
 	# Get the base values
