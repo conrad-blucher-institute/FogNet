@@ -37,8 +37,19 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from scipy.io import loadmat
 from tensorflow.keras.callbacks import EarlyStopping
 from Hamid.FogNet import xai_engine
-
 from Hamid.FogNet.model import models
+
+src_modules_dir = '/data1/fog/Hamid/FogNet/'
+
+# Directories for FogNet datasets
+dataset_dir = '/data1/fog/fognn/Dataset/'
+DEFAULT_TARGET_DIR_NAME    = dataset_dir + '/TARGET/'
+DEFAULT_CUBES_24_DIR_NAME  = dataset_dir + '/24HOURS/INPUT/'
+DEFAULT_TARGET_24_DIR_NAME = dataset_dir + '/24HOURS/TARGET/'
+
+# Directories for 'one_hold_out' and also 'single_gpu_weights' 
+onehout_dir   = src_modules_dir + 'trained_model/xai_trained_models/onehout/'
+cnn_file_name = src_modules_dir + 'trained_model/single_gpu_weights.h5'
 
 
 '''import keras.backend.tensorflow_backend as tfback
@@ -49,47 +60,17 @@ def _get_available_gpus():
 	return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
 tfback._get_available_gpus = _get_available_gpus
 from keras.utils import multi_gpu_model'''
+
+
 #from keras.utils import multi_gpu_model
 from tensorflow.python.client import device_lib
 #print(device_lib.list_local_devices())
 
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report, cohen_kappa_score
-#import utils
-#import FogNet
-#import FogNetConfig
-
 import sys
-sys.path.append('../')
+sys.path.append(src_modules_dir)
 from src import utils, FogNet, FogNetConfig, cnn_evaluate
 
-#import xai_engine
-#import utils, FogNet, FogNetConfig, cnn_evaluate
-
-
-DEFAULT_IMAGE_DIR_NAME = ('/data1/fog-data/fog-maps/')
-DEFAULT_TARGET_DIR_NAME = ('/data1/fog/fognn/Dataset/TARGET/')
-
-DEFAULT_CUBES_24_DIR_NAME = ('/data1/fog/fognn/Dataset/24HOURS/INPUT/')
-DEFAULT_TARGET_24_DIR_NAME = ('/data1/fog/fognn/Dataset/24HOURS/TARGET/')
-
-DEFAULT_LINE_COLOUR = numpy.array([228, 26, 28], dtype=float) / 255
-DEFAULT_LINE_WIDTH = 3
-DEFAULT_RANDOM_LINE_COLOUR = numpy.full(3, 152. / 255)
-DEFAULT_RANDOM_LINE_WIDTH = 2
-
-LEVELS_FOR_CONTOURS = numpy.linspace(0, 1, num=11, dtype=float)
-
-FIGURE_WIDTH_INCHES = 10
-FIGURE_HEIGHT_INCHES = 10
-
-FONT_SIZE = 20
-plt.rc('font', size=FONT_SIZE)
-plt.rc('axes', titlesize=FONT_SIZE)
-plt.rc('axes', labelsize=FONT_SIZE)
-plt.rc('xtick', labelsize=FONT_SIZE)
-plt.rc('ytick', labelsize=FONT_SIZE)
-plt.rc('legend', fontsize=FONT_SIZE)
-plt.rc('figure', titlesize=FONT_SIZE)
 
 strategy = tensorflow.distribute.MirroredStrategy()
 print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
@@ -170,8 +151,7 @@ filters      = 24     # hyperparameters[key][2]
 dropout      = 0.3    # hyperparameters[key][3] 
 
 
-cnn_file_name = '/data1/fog/FogNet/trained_model/single_gpu_weights.h5'
-#cnn_file_name = '/data1/fog/fognn/FogNet/trained_model/weights.h5'
+
 input_nam_shape       = Input((32, 32, 288, 1))
 input_mur_shape       = Input((384, 384, 1, 1)) 
 input_nam_G1_24_shape = Input((32, 32, 108, 1))
