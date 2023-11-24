@@ -7,22 +7,12 @@ Authors: Hamid Kamangir, Evan Krell
 #################
 # Load packages #
 #################
-import numpy
-import random
-import glob
 import os.path
-import time
 import pandas
-from scipy import integrate
-import scipy
-from numpy import savez_compressed
 from optparse import OptionParser
-from sklearn.utils import shuffle
 import tensorflow
-from tensorflow import keras
 from tensorflow.keras import Input, Model
 from tensorflow.keras.optimizers import Adam
-#import tensorflow.keras.backend.tensorflow_backend as tfback
 from tensorflow.python.client import device_lib
 
 def get_available_gpus():
@@ -39,7 +29,9 @@ from tensorflow.keras.utils import multi_gpu_model
 # FogNet packages
 import utils
 import cnn_evaluate
-import FogNet
+import sys
+sys.path.append('../')
+from model import FogNet
 
 #################
 # Parse options #
@@ -53,7 +45,7 @@ parser.add_option("-n", "--name",
 # Directories
 parser.add_option("-d", "--directory",
     help="Fog dataset directory\n[default = %default].",
-    default="/data1/fog/fognn/Dataset/")
+    default="/data1/fog/Dataset/") #/data1/fog/fognn/Dataset/
 parser.add_option("-o", "--output_directory",
     help="Output results directory [default = %default].")
 parser.add_option(      "--force",
