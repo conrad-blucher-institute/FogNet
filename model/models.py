@@ -1,23 +1,7 @@
-import tensorflow
-from tensorflow import keras
-import keras.backend as K
-from keras.utils import to_categorical
-from keras.models import Input, Model   
+from keras.models import Model   
 from keras.layers import concatenate
-from keras.layers import Add, add, Reshape, BatchNormalization, Input, Dense, Dropout, Flatten, multiply
-from keras.layers import Conv2D, Conv3D, MaxPooling2D, MaxPooling3D, AveragePooling2D, AveragePooling3D, GlobalAveragePooling2D, GlobalAveragePooling3D 
-from keras.layers import ReLU, PReLU, Activation 
-from keras.layers.advanced_activations import LeakyReLU 
-from keras import optimizers 
-from keras import regularizers  
-from keras.callbacks import Callback 
-from keras.optimizers import Adam, SGD 
-from keras.callbacks import ModelCheckpoint
-from keras.utils import np_utils
-from operator import truediv
-from scipy.io import loadmat
-#from keras.layers import Input
-#from tensorflow.keras.models import Model
+from keras.layers import Conv2D, Conv3D, MaxPooling2D, MaxPooling3D, GlobalAveragePooling2D, GlobalAveragePooling3D, PReLU, BatchNormalization, Dense, Dropout
+
 
 class FogNet():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 
@@ -387,7 +371,6 @@ class FogNetC():
 #===================================================================================
 #===================================================================================
 
-
 class FogNet2D():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 
 
@@ -499,11 +482,6 @@ class FogNet2D():
 
         return model 
 
-
-
-
-
-
 class seq():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 
 
@@ -605,10 +583,6 @@ class seq():
 
         return model 
 
-
-
-
-
 class spect():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 
 
@@ -697,10 +671,6 @@ class spect():
         model.summary()
 
         return model 
-
-
-
-
 
 class parallel():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 
@@ -815,9 +785,6 @@ class parallel():
         model.summary()
 
         return model 
-
-
-
 
 class spat():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 
@@ -1006,7 +973,6 @@ class wms():
         model.summary()
 
         return model 
-
 
 class wam():
     def __init__(self, input_nam_G1_shape,input_nam_G2_shape,input_nam_G3_shape,input_nam_G4_shape,input_nam_mixed_shape, input_mur_shape, filters, dropout, num_classes): 

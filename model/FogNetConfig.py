@@ -1,7 +1,4 @@
-import tensorflow
-from tensorflow import keras
-from tensorflow.keras.layers import Add, add, Reshape, BatchNormalization, Input, Dense, Dropout, Flatten, concatenate
-from tensorflow.keras.layers import Conv2D, Conv3D, Activation, MaxPooling2D, MaxPooling3D, AveragePooling3D, ReLU, GlobalAveragePooling3D, multiply, PReLU
+from tensorflow.keras.layers import add, Reshape, BatchNormalization, Dense, concatenate, Conv3D, MaxPooling3D, AveragePooling3D, multiply, PReLU
 
 #======================================================================================================
 def SpectralAttentionBlock(input, filters):
@@ -26,8 +23,6 @@ def SpectralAttentionBlock(input, filters):
     #print("The size of spectral attention tensor: ", multensor.shape)
 
     return multensor
-
-
 
 def SpatialAttentionBlock(input):
     # Attention Block
@@ -86,7 +81,6 @@ def SpatialDenseBlock(inputs):
         x = SpatialDenseFactor(concatenated_inputs)
         concatenated_inputs = concatenate([concatenated_inputs, x], axis=4)
     return concatenated_inputs
-
 
 def SSTDilationBlock(input_map):
   input_map_norm = BatchNormalization()(input_map)
