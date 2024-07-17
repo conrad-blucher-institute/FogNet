@@ -64,11 +64,11 @@ def main():
             error[i] = "a"
             errorType[i] = "hit"
         # False alarm
-        elif p == 1 and t == 0:
+        elif p == 0 and t == 1:
             error[i] = "b"
             errorType[i] = "false-alarm"
         # Miss
-        elif p == 0 and t == 1:
+        elif p == 1 and t == 0:
             error[i] = "c"
             errorType[i] = "miss"
         # Correct rejection
